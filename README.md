@@ -73,6 +73,10 @@ This agent-based design allows each AI to focus on a dedicated responsibility wh
 
 ### Resume Roast
 
+Get user's input PDF from TallySo and re-direct to PDFCo API to convert-to-text
+
+Get roast level from Webhook Value - input from User
+
 Provides brutally honest feedback about the resume.
 
 Examples:
@@ -87,6 +91,8 @@ Examples:
 ---
 
 ### Resume Rewriter
+
+Get user's input PDF from TallySo and re-direct to PDFCo API to convert-to-text
 
 Evaluates the resume from a hiring manager perspective.
 
