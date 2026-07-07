@@ -6,11 +6,11 @@ An end-to-end AI-powered resume review system built with n8n that automatically 
 
 ## Features
 
-- Resume upload via Tally.so
+- Resume upload via Tally.so - Choose 3 Severity Levels
 - PDF text extraction using PDF.co API
 - Multi-agent AI review
-- Resume roast
-- HR evaluation
+- Resume Roast
+- Resume Writer
 - Career improvement suggestions
 - Automatic email delivery
 - Hosted on Railway
