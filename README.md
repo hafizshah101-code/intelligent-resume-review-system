@@ -22,7 +22,7 @@ Live website @ Gamma AI --> https://roast-your-resume-hd9d1dt.gamma.site/
 
 ## Architecture
 
-![Architecture](docs/architecture-diagram.png)
+![Architecture](docs/workflow-overview.png)
 
 ---
 
