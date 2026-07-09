@@ -24,7 +24,7 @@ Hosted at Railway.App
 
 ## Architecture
 
-![Architecture](docs/workflow-overview.png)
+![Architecture](docs/n8n-resume-automation-architecture.png)
 
 ---
 
