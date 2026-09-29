@@ -1,0 +1,124 @@
+name: Resume Roast CI
+
+on:
+  push:
+    branches:
+      - main
+      - "ci/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: resume-roast-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required project files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            "README.md"
+            "prompts/resume-roast-prompt.txt"
+            "prompts/resume-writer-prompt.txt"
+            "docs/n8n-resume-automation-architecture.png"
+            "docs/workflow-overview.png"
+          )
+
+          for file in "${required_files[@]}"; do
+            if [[ ! -s "$file" ]]; then
+              echo "::error file=$file::Required project file is missing or empty."
+              exit 1
+            fi
+            echo "OK: $file"
+          done
+
+      - name: Validate README architecture references
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          grep -Fq "docs/n8n-resume-automation-architecture.png" README.md || {
+            echo "::error file=README.md::Architecture image reference is missing."
+            exit 1
+          }
+
+          grep -Fq "Railway" README.md || {
+            echo "::error file=README.md::Railway deployment documentation is missing."
+            exit 1
+          }
+
+          grep -Fq "n8n" README.md || {
+            echo "::error file=README.md::n8n workflow documentation is missing."
+            exit 1
+          }
+
+      - name: Scan tracked text files for accidental secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t files < <(git grep -Il '' -- '*.md' '*.txt' '*.json' '*.yml' '*.yaml' '*.env' '*.sh' 2>/dev/null || true)
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No tracked text files found for secret scan."
+            exit 0
+          fi
+
+          secret_pattern='(AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[0-9A-Za-z]{20,}|sk-[0-9A-Za-z_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)'
+
+          if grep -EnH "$secret_pattern" "${files[@]}"; then
+            echo "::error::Potential credential or private key detected in tracked files."
+            exit 1
+          fi
+
+          echo "No obvious credentials detected."
+
+      - name: Check public project endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          urls=(
+            "https://hafizshah.com"
+            "https://resume-roast.hafizshah.com/"
+          )
+
+          for url in "${urls[@]}"; do
+            status="$(curl               --location               --silent               --show-error               --output /dev/null               --write-out '%{http_code}'               --connect-timeout 10               --max-time 20               "$url")"
+
+            if [[ "$status" -lt 200 || "$status" -ge 400 ]]; then
+              echo "::error::Endpoint check failed for $url (HTTP $status)"
+              exit 1
+            fi
+
+            echo "OK: $url -> HTTP $status"
+          done
+
+      - name: CI summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Resume Roast CI"
+            echo
+            echo "- Repository structure validation"
+            echo "- README/deployment documentation checks"
+            echo "- Basic accidental-secret scan"
+            echo "- Public endpoint health checks"
+          } >> "$GITHUB_STEP_SUMMARY"
